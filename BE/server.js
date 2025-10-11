@@ -9,15 +9,15 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-// Middlewares
+
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use(rateLimit({ windowMs: 60 * 1000, max: 100 }));
 
-// 👇 Register all routes here
+
 app.use("/api", routes);
 
-// Socket.IO
+
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
   socket.on("disconnect", () => console.log("Client disconnected:", socket.id));
