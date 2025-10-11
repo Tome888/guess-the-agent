@@ -3,7 +3,7 @@ import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
-import routes from "./routes/index.js"; // 👈 import all routes
+import routes from "./routes/index.js"; 
 
 const app = express();
 const server = http.createServer(app);

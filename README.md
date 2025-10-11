@@ -16,3 +16,8 @@ be(
     rate-limit
     jwt
 )
+
+
+CREATE-> clicks create button, room is created in db-> gets roomid in url and in token-> token saved in LS-> state on page to validate token-> valid token=stay on page if not rederect to home.
+Join-> input roomId or use url to join room-> check if roomId exists in db -> update state with token and userId
+
