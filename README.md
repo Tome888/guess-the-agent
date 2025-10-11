@@ -14,4 +14,5 @@ be(
     cors
     zod
     rate-limit
+    jwt
 )
