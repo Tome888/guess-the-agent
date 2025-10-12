@@ -1,30 +1,4 @@
 "use client";
-
-// import { useParams } from "next/navigation"
-// import { useEffect, useState } from "react"
-// import toast from "react-hot-toast"
-
-// export default function GamePage(){
-//     const [gameData, setGameData] = useState()
-//     const {roomData} = useParams()
-
-//     useEffect(()=>{
-//     const ls = localStorage.getItem("gameToken")
-//     if(ls){
-//         const parseToken = JSON.parse(ls)
-//         // if we have the token we should validate it
-
-//     }else{
-//         //if we dont have token then we should check if there is a open slot in the game room if the room id exists
-//         toast.promise
-//     }
-
-//         console.log(roomData,"roomId")
-//     },[roomData])
-
-//     return <section>game page</section>
-// }
-
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -32,13 +6,12 @@ import toast from "react-hot-toast";
 export default function GamePage() {
   const [gameData, setGameData] = useState();
   const { roomData } = useParams();
- const router = useRouter();
-  
+  const router = useRouter();
+
   useEffect(() => {
     const ls = localStorage.getItem("gameToken");
 
     if (!ls) {
-      
       const joinRoomPromise = fetch(
         `http://localhost:5000/api/join-room/${roomData}`
       )
@@ -47,10 +20,12 @@ export default function GamePage() {
           const data = await res.json();
           setGameData(data);
           localStorage.setItem("gameToken", JSON.stringify(data.token));
+          localStorage.setItem("userId",JSON.stringify(data.playerId))
           return data;
         })
         .catch(() => {
-          
+          alert("wrong or full room");
+
           router.push("/");
         });
 
@@ -59,7 +34,34 @@ export default function GamePage() {
         success: "Joined the room successfully!",
         error: "No open slots available or room does not exist.",
       });
+      return;
     }
+    const parsedToken = JSON.parse(ls);
+    validateToken(parsedToken);
   }, [roomData, router]);
+
+  const validateToken = (theToken: string) => {
+    const validatePromise = fetch(`http://localhost:5000/api/validate-token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tokenClient: theToken }),
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Invalid or expired token");
+        return await res.json();
+      })
+      .catch(() => {
+        localStorage.removeItem("gameToken");
+        localStorage.removeItem("userId");
+        router.push("/");
+        throw new Error("Invalid or expired token");
+      });
+
+    toast.promise(validatePromise, {
+      loading: "Validating your session...",
+      success: "Session is valid.",
+      error: "Invalid or expired token. Redirecting...",
+    });
+  };
   return <section>game page</section>;
 }

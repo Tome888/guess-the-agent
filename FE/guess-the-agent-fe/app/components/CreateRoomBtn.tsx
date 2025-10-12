@@ -19,6 +19,8 @@ export default function CreateRoomBtn() {
         const data = await res.json();
         setRoomData(data.roomToken);
         localStorage.setItem("gameToken", JSON.stringify(data.roomToken))
+        localStorage.setItem("userId", JSON.stringify(data.playerId))
+
         if(!data.roomId) return
         router.push(`/${data.roomId}`)
         console.log(data)

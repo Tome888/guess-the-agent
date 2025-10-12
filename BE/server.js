@@ -5,12 +5,17 @@ import cors from "cors";
 import rateLimit from "express-rate-limit";
 import routes from "./routes/index.js"; 
 
+
+const corsUrl="http://localhost:3000"
+export const secretKey = "this-should-be-in-env";
+
+
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server, { cors: { origin: corsUrl } });
 
 
-app.use(cors({ origin: "*" }));
+app.use(cors({ origin: corsUrl }));
 app.use(express.json());
 app.use(rateLimit({ windowMs: 60 * 1000, max: 100 }));
 
