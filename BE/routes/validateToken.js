@@ -28,7 +28,7 @@ router.post("/", (req, res) => {
       return res.status(401).json({ error: "Token data does not match any player" });
     }
 
-    res.status(200).json({ message: "Token is valid", player });
+    res.status(200).json({ msg: "Token is valid", player });
   } catch (err) {
     console.error("Token validation error:", err.message);
     return res.status(401).json({ error: "Invalid or expired token" });
