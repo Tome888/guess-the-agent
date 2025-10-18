@@ -19,7 +19,6 @@ export default function GamePage() {
   const { roomData } = useParams();
 
   const [agents, setAgents] = useState(AGENT_CARDS);
-  const [roomSize, setRoomSize] = useState<number>(0);
 
   useEffect(() => {
     if (!token || !userId || !roomData) return;
@@ -32,10 +31,6 @@ export default function GamePage() {
     fetchAgents();
 
     socket.emit("join_room", roomData);
-
-    socket.on("room_info", (data: { size: number }) => {
-      setRoomSize(data.size);
-    });
 
     socket.on("receive_turn", (data) => {
       console.log("Turn received:", data);
@@ -72,26 +67,12 @@ export default function GamePage() {
           <button
             onClick={() => {
               if (turn === userId) {
-                // sendUpdateAgentsArray(agents, token, setAgents);
+                sendUpdateAgentsArray(agents, token, setAgents);
 
-                // socket.emit("send_turn", {
-                //   roomData,
-                //   turnObj: { turn: userId },
-                // });
-
-                if (turn === userId) {
-                  if (roomSize < 2) {
-                    toast.error("You can't update agents alone 😉");
-                    return;
-                  }
-
-                  sendUpdateAgentsArray(agents, token, setAgents);
-
-                  socket.emit("send_turn", {
-                    roomData,
-                    turnObj: { turn: userId },
-                  });
-                }
+                socket.emit("send_turn", {
+                  roomData,
+                  turnObj: { turn: userId },
+                });
               }
             }}
             className="w-full bg-amber-600 hover:bg-amber-700 px-4 py-2 rounded-lg font-semibold transition"
