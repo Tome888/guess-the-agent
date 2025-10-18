@@ -50,7 +50,9 @@ export default function AgentDropdown({ agents }: AgentDropdownProps) {
               <img
                 src={agent.img}
                 alt={agent.name}
-                className="w-8 h-8 object-contain rounded-full border border-amber-500"
+                className={`w-8 h-8 object-contain rounded-full border border-amber-500 ${
+                  agent.eliminated ? "opacity-40 grayscale" : "bg-neutral-800"
+                }`}
               />
               <span>{agent.name}</span>
             </div>

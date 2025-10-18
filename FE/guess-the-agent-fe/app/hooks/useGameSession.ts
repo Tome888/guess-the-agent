@@ -7,14 +7,21 @@ interface GameSession {
   token: string;
   userId: string;
   loading: boolean;
+  turn: string | null;
+  setTurn: (turn: string | null) => void;
 }
 
 export default function useGameSession(): GameSession {
   const [token, setToken] = useState("");
   const [userId, setUserId] = useState("");
   const [loading, setLoading] = useState(true);
+  const [turn, setTurn] = useState<string | null>(null);
   const router = useRouter();
   const { roomData } = useParams();
+
+  useEffect(() => {
+    console.log(turn, "<- this is the turn");
+  }, [turn]);
 
   useEffect(() => {
     const initSession = async () => {
@@ -22,7 +29,6 @@ export default function useGameSession(): GameSession {
         const ls = localStorage.getItem("gameToken");
 
         if (!ls) {
-          
           const joinRoomPromise = fetch(
             `http://localhost:5000/api/join-room/${roomData}`
           )
@@ -34,12 +40,15 @@ export default function useGameSession(): GameSession {
               localStorage.setItem("userId", JSON.stringify(data.playerId));
               setUserId(data.playerId);
               setToken(data.token);
+              setTurn(data.turn);
               return data;
             })
             .catch(() => {
               alert("Wrong or full room");
               setUserId("");
               setToken("");
+              setTurn(null);
+
               router.push("/");
             })
             .finally(() => setLoading(false));
@@ -52,7 +61,6 @@ export default function useGameSession(): GameSession {
           return;
         }
 
-       
         const parsedToken = JSON.parse(ls);
         await validateToken(parsedToken);
       } finally {
@@ -64,6 +72,7 @@ export default function useGameSession(): GameSession {
   }, [roomData, router]);
 
   const validateToken = async (theToken: string) => {
+   
     const validatePromise = fetch(`http://localhost:5000/api/validate-token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -76,12 +85,15 @@ export default function useGameSession(): GameSession {
       .then((data) => {
         setUserId(data.player.id);
         setToken(theToken);
+        setTurn(data.turn);
       })
       .catch(() => {
         localStorage.removeItem("gameToken");
         localStorage.removeItem("userId");
         setUserId("");
         setToken("");
+        setTurn(null);
+
         router.push("/");
         throw new Error("Invalid or expired token");
       });
@@ -93,5 +105,5 @@ export default function useGameSession(): GameSession {
     });
   };
 
-  return { token, userId, loading };
+  return { token, userId, loading, turn, setTurn };
 }
