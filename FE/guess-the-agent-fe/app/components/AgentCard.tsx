@@ -5,7 +5,9 @@ import { Agent } from "../types/agents";
 
 interface AgentCardProps {
   setAgents: (arr: Agent[]) => void;
-  agentArr: Agent[]
+  agentArr: Agent[];
+  turn: string|null;
+  userId: string;
 }
 export default function AgentCard({
   id,
@@ -13,11 +15,13 @@ export default function AgentCard({
   name,
   eliminated,
   setAgents,
-  agentArr
+  agentArr,
+  turn,
+  userId,
 }: Agent & AgentCardProps) {
   return (
     <div
-    onClick={()=>setAgentsArrCustom(agentArr, id, setAgents)}
+      onClick={() =>turn===userId&& setAgentsArrCustom(agentArr, id, setAgents)}
       className={`flex flex-col items-center justify-center p-4 rounded-2xl shadow-md transition-transform transform hover:scale-105 cursor-pointer ${
         eliminated ? "opacity-40 grayscale" : "bg-neutral-800"
       }`}

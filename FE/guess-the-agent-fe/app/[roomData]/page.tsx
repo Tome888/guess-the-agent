@@ -7,15 +7,19 @@ import AgentDropdown from "../components/AgentDropdown";
 import { useParams } from "next/navigation";
 import { getActiveAgentIds } from "../customFunctions/getActiveAgents";
 import { socket } from "../customFunctions/socket";
-import getPlayerAgents, { AGENT_CARDS } from "../customFunctions/getPlayerAgents";
-
-
+import getPlayerAgents, {
+  AGENT_CARDS,
+} from "../customFunctions/getPlayerAgents";
+import Chat from "../components/Chat";
+import sendUpdateAgentsArray from "../customFunctions/sendUpdateAgentsArray";
+import toast from "react-hot-toast";
 
 export default function GamePage() {
   const { token, userId, loading, turn, setTurn } = useGameSession();
   const { roomData } = useParams();
 
   const [agents, setAgents] = useState(AGENT_CARDS);
+  const [roomSize, setRoomSize] = useState<number>(0);
 
   useEffect(() => {
     if (!token || !userId || !roomData) return;
@@ -25,8 +29,20 @@ export default function GamePage() {
         setAgents(fetchedAgents);
       }
     };
-
     fetchAgents();
+
+    socket.emit("join_room", roomData);
+
+    socket.on("room_info", (data: { size: number }) => {
+      setRoomSize(data.size);
+    });
+
+    socket.on("receive_turn", (data) => {
+      console.log("Turn received:", data);
+      if (data.error) return toast.error(data.error);
+
+      setTurn(data.turn);
+    });
 
     return () => {
       socket.disconnect();
@@ -51,15 +67,40 @@ export default function GamePage() {
             userId={userId}
             agentsArr={agents}
             setAgents={setAgents}
+            turn={turn}
           />
           <button
-            onClick={() => turn && console.log(getActiveAgentIds(agents))}
+            onClick={() => {
+              if (turn === userId) {
+                // sendUpdateAgentsArray(agents, token, setAgents);
+
+                // socket.emit("send_turn", {
+                //   roomData,
+                //   turnObj: { turn: userId },
+                // });
+
+                if (turn === userId) {
+                  if (roomSize < 2) {
+                    toast.error("You can't update agents alone 😉");
+                    return;
+                  }
+
+                  sendUpdateAgentsArray(agents, token, setAgents);
+
+                  socket.emit("send_turn", {
+                    roomData,
+                    turnObj: { turn: userId },
+                  });
+                }
+              }
+            }}
             className="w-full bg-amber-600 hover:bg-amber-700 px-4 py-2 rounded-lg font-semibold transition"
             disabled={turn !== userId}
           >
             Submit
           </button>
         </div>
+        <Chat turn={turn} setTurn={setTurn} token={token} userId={userId} />
         <AgentDropdown agents={agents} />
       </div>
     </section>

@@ -28,6 +28,16 @@ CREATE TABLE IF NOT EXISTS players (
   agents TEXT,
   FOREIGN KEY (room_id) REFERENCES game_rooms(id)
 );
+
+
+CREATE TABLE IF NOT EXISTS chat (
+  id TEXT PRIMARY KEY,
+  room_id TEXT,
+  msg TEXT,
+  answer INTEGER,
+  userId TEXT,
+  FOREIGN KEY (room_id) REFERENCES game_rooms(id)
+);
 `);
 
 router.get("/", (_, res) => {
