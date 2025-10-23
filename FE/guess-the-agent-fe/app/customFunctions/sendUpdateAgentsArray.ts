@@ -12,7 +12,7 @@ export default async function sendUpdateAgentsArray(
 
   const idsArray = newAgents.map((agent) => agent.id);
 
-  console.log(idsArray, "<-ids");
+  
 
   try {
     const res = await fetch("http://localhost:5000/api/update-agents-array", {

@@ -10,7 +10,6 @@ const corsUrl = "http://localhost:3000";
 export const secretKey = "this-should-be-in-env";
 const db = new Database("game.db");
 
-
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: corsUrl } });
@@ -22,63 +21,88 @@ app.use(rateLimit({ windowMs: 60 * 1000, max: 100 }));
 app.use("/api", routes);
 
 io.on("connection", (socket) => {
-  console.log("🟢Client connected:", socket.id);
+  console.log("🟢 Client connected:", socket.id);
+
 
   socket.on("join_room", (roomData) => {
-    socket.join(roomData);
-    console.log(`User ${socket.id} joined room ${roomData}❓❓❓`);
-  });
+  socket.join(roomData);
+  socket.data.roomData = roomData; 
+  console.log(`User ${socket.id} joined room ${roomData}`);
 
-
-socket.on("send_turn", ({ roomData }) => {
   const room = io.sockets.adapter.rooms.get(roomData);
   const roomSize = room ? room.size : 0;
+  console.log(`Room ${roomData} size: ${roomSize}`);
 
-  if (roomSize < 2) {
-    console.log("Won't send: room has only 1 user");
-    socket.emit("receive_turn", { error: "You can't play alone Buddy 😉" });
-    return;
-  }
-
-  
-  const roomRow = db.prepare("SELECT * FROM game_rooms WHERE id = ?").get(roomData);
+  const roomRow = db
+    .prepare("SELECT * FROM game_rooms WHERE id = ?")
+    .get(roomData);
 
   if (!roomRow) {
-    console.log("Room not found in DB:", roomData);
     socket.emit("receive_turn", { error: "Room not found in database" });
     return;
   }
 
- 
-  let newTurnPlayer;
-  if (roomRow.turn === roomRow.player1) {
-    newTurnPlayer = roomRow.player2;
-  } else {
-    newTurnPlayer = roomRow.player1;
+  if (roomSize === 1) {
+    
+    io.to(roomData).emit("receive_turn", { turn: null });
+  } else if (roomSize === 2) {
+   
+    io.to(roomData).emit("receive_turn", { turn: roomRow.turn });
   }
-
- 
-  db.prepare("UPDATE game_rooms SET turn = ? WHERE id = ?").run(newTurnPlayer, roomData);
-
-  console.log(`Turn switched! New turn player: ${newTurnPlayer}`);
+});
 
   
-  io.to(roomData).emit("receive_turn", { turn: newTurnPlayer });
+  socket.on("receive_turn", ({ roomData }) => {
+    const roomRow = db
+      .prepare("SELECT * FROM game_rooms WHERE id = ?")
+      .get(roomData);
+    if (!roomRow) {
+      socket.emit("receive_turn", { error: "Room not found in DB" });
+      return;
+    }
+
+   
+    const newTurnPlayer =
+      roomRow.turn === roomRow.player1 ? roomRow.player2 : roomRow.player1;
+    db.prepare("UPDATE game_rooms SET turn = ? WHERE id = ?").run(
+      newTurnPlayer,
+      roomData
+    );
+
+    console.log(`Turn switched! New turn player: ${newTurnPlayer}`);
+    io.to(roomData).emit("receive_turn", { turn: newTurnPlayer });
+  });
+
+ 
+  socket.on("disconnect", () => {
+    const roomData = socket.data.roomData;
+    if (!roomData) return; 
+
+    const room = io.sockets.adapter.rooms.get(roomData);
+    const roomSize = room ? room.size : 0;
+
+    if (roomSize < 1) {
+      console.log(`Room ${roomData} is empty now.`);
+      return;
+    }
+
+    if (roomSize === 1) {
+      
+      io.to(roomData).emit("receive_turn", {
+        turn: null,
+        msg: "Opponent left. Waiting for someone else...",
+      });
+      console.log(`User left room ${roomData}. Only 1 player remains.`);
+    }
+
+    console.log(
+      `🔴 Socket ${socket.id} disconnected from room ${roomData} (size: ${roomSize})`
+    );
+  });
 });
-
-  socket.on("disconnect", () =>
-    console.log("🔴Client disconnected:", socket.id)
-  );
-});
-
-
-
 
 const PORT = 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`)); //CHAT, AGENT sTATE, FINAL PICK, WINNER
-
-//validate the token
-//table game-rooms update the turn in the table with THE OTHER PLAYER
-//table players update the according player agents array
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 
+//ADDED change turn, next is seperate socket for CHAT, PICK and Winner

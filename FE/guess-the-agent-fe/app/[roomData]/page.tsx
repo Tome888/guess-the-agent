@@ -35,8 +35,8 @@ export default function GamePage() {
     socket.on("receive_turn", (data) => {
       console.log("Turn received:", data);
       if (data.error) return toast.error(data.error);
-
       setTurn(data.turn);
+
     });
 
     return () => {
@@ -69,7 +69,7 @@ export default function GamePage() {
               if (turn === userId) {
                 sendUpdateAgentsArray(agents, token, setAgents);
 
-                socket.emit("send_turn", {
+                socket.emit("receive_turn", {
                   roomData,
                   turnObj: { turn: userId },
                 });

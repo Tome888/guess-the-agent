@@ -20,7 +20,7 @@ export default function useGameSession(): GameSession {
   const { roomData } = useParams();
 
   useEffect(() => {
-    console.log(turn, "<- this is the turn");
+    console.log(turn, "<- TURN IS CHANGED FROM STATE");
   }, [turn]);
 
   useEffect(() => {
