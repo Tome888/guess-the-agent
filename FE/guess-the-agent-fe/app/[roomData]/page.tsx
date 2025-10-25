@@ -82,7 +82,7 @@ export default function GamePage() {
             Submit
           </button>
         </div>
-        <Chat turn={turn} setTurn={setTurn} token={token} userId={userId} />
+        <Chat turn={turn} setTurn={setTurn} token={token} userId={userId}  />
         <AgentDropdown agents={agents} />
       </div>
     </section>

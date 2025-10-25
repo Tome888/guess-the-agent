@@ -19,7 +19,7 @@ router.post("/", (req, res)  => {
       .prepare("SELECT * FROM chat WHERE room_id = ?")
       .all(roomId);
 
-    if (!chat) returnres.json({ chatHistory: [] });
+    if (!chat) return res.json({ chatHistory: [] });
     return res.json({ chatHistory: chat });
   } catch (err) {
     console.error(err);

@@ -23,35 +23,31 @@ app.use("/api", routes);
 io.on("connection", (socket) => {
   console.log("🟢 Client connected:", socket.id);
 
-
   socket.on("join_room", (roomData) => {
-  socket.join(roomData);
-  socket.data.roomData = roomData; 
-  console.log(`User ${socket.id} joined room ${roomData}`);
+    socket.join(roomData);
+    socket.data.roomData = roomData;
+    console.log(`User ${socket.id} joined room ${roomData}`);
 
-  const room = io.sockets.adapter.rooms.get(roomData);
-  const roomSize = room ? room.size : 0;
-  console.log(`Room ${roomData} size: ${roomSize}`);
+    const room = io.sockets.adapter.rooms.get(roomData);
+    const roomSize = room ? room.size : 0;
+    console.log(`Room ${roomData} size: ${roomSize}`);
 
-  const roomRow = db
-    .prepare("SELECT * FROM game_rooms WHERE id = ?")
-    .get(roomData);
+    const roomRow = db
+      .prepare("SELECT * FROM game_rooms WHERE id = ?")
+      .get(roomData);
 
-  if (!roomRow) {
-    socket.emit("receive_turn", { error: "Room not found in database" });
-    return;
-  }
+    if (!roomRow) {
+      socket.emit("receive_turn", { error: "Room not found in database" });
+      return;
+    }
 
-  if (roomSize === 1) {
-    
-    io.to(roomData).emit("receive_turn", { turn: null });
-  } else if (roomSize === 2) {
-   
-    io.to(roomData).emit("receive_turn", { turn: roomRow.turn });
-  }
-});
+    if (roomSize === 1) {
+      io.to(roomData).emit("receive_turn", { turn: null });
+    } else if (roomSize === 2) {
+      io.to(roomData).emit("receive_turn", { turn: roomRow.turn });
+    }
+  });
 
-  
   socket.on("receive_turn", ({ roomData }) => {
     const roomRow = db
       .prepare("SELECT * FROM game_rooms WHERE id = ?")
@@ -61,7 +57,6 @@ io.on("connection", (socket) => {
       return;
     }
 
-   
     const newTurnPlayer =
       roomRow.turn === roomRow.player1 ? roomRow.player2 : roomRow.player1;
     db.prepare("UPDATE game_rooms SET turn = ? WHERE id = ?").run(
@@ -73,10 +68,27 @@ io.on("connection", (socket) => {
     io.to(roomData).emit("receive_turn", { turn: newTurnPlayer });
   });
 
- 
+  socket.on("chat-socket", (chatData) => {
+    const { roomId, msg, answer, userId } = chatData;
+
+    const room = io.sockets.adapter.rooms.get(roomId);
+    const numClients = room ? room.size : 0;
+
+    if (numClients !== 2) return;
+    const unixMilliseconds = Date.now();
+
+    io.to(roomId).emit("chat-socket", {
+      id: `${unixMilliseconds}`,
+      room_id: roomId,
+      msg,
+      answer,
+      userId,
+    });
+  });
+
   socket.on("disconnect", () => {
     const roomData = socket.data.roomData;
-    if (!roomData) return; 
+    if (!roomData) return;
 
     const room = io.sockets.adapter.rooms.get(roomData);
     const roomSize = room ? room.size : 0;
@@ -87,7 +99,6 @@ io.on("connection", (socket) => {
     }
 
     if (roomSize === 1) {
-      
       io.to(roomData).emit("receive_turn", {
         turn: null,
         msg: "Opponent left. Waiting for someone else...",
@@ -103,6 +114,5 @@ io.on("connection", (socket) => {
 
 const PORT = 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
 
 //ADDED change turn, next is seperate socket for CHAT, PICK and Winner
