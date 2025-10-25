@@ -1,6 +1,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { socket } from "../customFunctions/socket";
+import useGetChatHistory from "../hooks/useGetChatHistory";
 
 interface ChatProps {
   turn: string | null;
@@ -9,31 +10,27 @@ interface ChatProps {
   userId: string;
 }
 
-type ChatType = {
-  id: string;
-  room_id: string;
-  msg: string;
-  answer: number;
-  userId: string;
-};
+
 
 export default function Chat({ turn, setTurn, token, userId }: ChatProps) {
+  const { chatArr, setChatArr, loading } =useGetChatHistory(token)
 
 
   const { roomData } = useParams();
 
-  const [chatArr, setChatArr] = useState<ChatType[]>([]);
+  // const [chatArr, setChatArr] = useState<ChatType[]>([]);
   const [input, setInput] = useState("");
 
 
   useEffect(() => {
     if (!token || !userId || !roomData) return;
+
   }, [token, userId, roomData]);
 
 
 
   const handleSend = () => {
-    if (!input.trim()) return;
+    if (!input.trim() || turn !==userId) return;
     console.log(input);
     setInput("");
   };

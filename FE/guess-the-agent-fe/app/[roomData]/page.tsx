@@ -19,6 +19,7 @@ export default function GamePage() {
   const { roomData } = useParams();
 
   const [agents, setAgents] = useState(AGENT_CARDS);
+  
 
   useEffect(() => {
     if (!token || !userId || !roomData) return;
