@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import toast from "react-hot-toast";
+import { socket } from "../customFunctions/socket";
 
 interface GameSession {
   token: string;
@@ -90,6 +91,7 @@ export default function useGameSession(): GameSession {
       .catch(() => {
         localStorage.removeItem("gameToken");
         localStorage.removeItem("userId");
+        socket.disconnect()
         setUserId("");
         setToken("");
         setTurn(null);

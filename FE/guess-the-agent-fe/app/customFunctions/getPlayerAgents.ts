@@ -46,7 +46,7 @@ export default async function getPlayerAgents(token: string):Promise<Agent[]> {
     }
 
     const data = await res.json();
-    return data.agents; // returns the array of matched agent cards
+    return data.agents; 
   } catch (err) {
     console.error("Error fetching player agents:", err);
     return AGENT_CARDS;

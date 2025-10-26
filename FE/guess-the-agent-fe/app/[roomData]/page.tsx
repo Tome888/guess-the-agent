@@ -13,6 +13,7 @@ import getPlayerAgents, {
 import Chat from "../components/Chat";
 import sendUpdateAgentsArray from "../customFunctions/sendUpdateAgentsArray";
 import toast from "react-hot-toast";
+import NavBar from "../components/NavBar";
 
 export default function GamePage() {
   const { token, userId, loading, turn, setTurn } = useGameSession();
@@ -55,6 +56,7 @@ export default function GamePage() {
 
   return (
     <section className="w-[100%] flex flex-col items-center justify-center">
+      <NavBar token={token}/>
       <div className="w-[100%] flex items-start justify-center pt-[5rem]">
         <div className="p-6">
           {turn === userId ? "Its your turn 🟢" : "opponents turn 🔴"}

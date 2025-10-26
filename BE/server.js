@@ -66,33 +66,6 @@ io.on("connection", (socket) => {
     io.to(roomData).emit("receive_turn", { turn: newTurnPlayer });
   });
 
-  // socket.on("chat-socket", (chatData) => {
-  //   const { roomId, msg, answer, userId, id } = chatData;
-
-  //   const room = io.sockets.adapter.rooms.get(roomId);
-  //   const numClients = room ? room.size : 0;
-
-  //   if (numClients !== 2) return;
-
-  //   if (answer) {
-  //      io.to(roomId).emit("chat-socket", {
-  //       id,
-  //       room_id: roomId,
-  //       msg,
-  //       answer,
-  //       userId,
-  //     });
-     
-  //   } else {
-  //      io.to(roomId).emit("chat-socket", {
-  //       id: uuidv4(),
-  //       room_id: roomId,
-  //       msg,
-  //       answer,
-  //       userId,
-  //     });
-  //   }
-  // });
 
 socket.on("chat-socket", (chatData) => {
   const { roomId, msg, answer, userId, id } = chatData;
@@ -161,4 +134,9 @@ socket.on("chat-socket", (chatData) => {
 const PORT = 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-//ADDED change turn, next is seperate socket for CHAT, PICK and Winner
+// //ADDED change turn, next is seperate socket for CHAT, PICK and Winner
+
+
+
+
+

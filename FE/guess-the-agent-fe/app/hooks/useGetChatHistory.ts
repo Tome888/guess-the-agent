@@ -5,11 +5,6 @@ export default function useGetChatHistory(token: string) {
   const [chatArr, setChatArr] = useState<ChatType[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(()=>{
-    console.log(chatArr, "CHAT HISTORY!!!")
-  },[chatArr])
-
-
   useEffect(() => {
     if (!token) return;
     setLoading(true);
