@@ -15,6 +15,6 @@ export interface ChatType  {
   id: string;
   room_id: string;
   msg: string;
-  answer: number;
+  answer: string|null;
   userId: string;
 };

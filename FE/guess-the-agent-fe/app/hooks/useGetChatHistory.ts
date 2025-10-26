@@ -5,8 +5,13 @@ export default function useGetChatHistory(token: string) {
   const [chatArr, setChatArr] = useState<ChatType[]>([]);
   const [loading, setLoading] = useState(false);
 
+  useEffect(()=>{
+    console.log(chatArr, "CHAT HISTORY!!!")
+  },[chatArr])
+
+
   useEffect(() => {
-    if(!token)return
+    if (!token) return;
     setLoading(true);
     fetch("http://localhost:5000/api/get-room-chat", {
       method: "POST",
@@ -15,8 +20,8 @@ export default function useGetChatHistory(token: string) {
     })
       .then((res) => res.json())
       .then((data) => {
-        if(!data.chatHistory)return
-        setChatArr(data.chatHistory)
+        if (!data.chatHistory) return;
+        setChatArr(data.chatHistory);
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
