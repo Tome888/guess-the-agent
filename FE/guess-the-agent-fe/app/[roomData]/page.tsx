@@ -16,11 +16,11 @@ import toast from "react-hot-toast";
 import NavBar from "../components/NavBar";
 
 export default function GamePage() {
-  const { token, userId, loading, turn, setTurn } = useGameSession();
+  const { token, userId, loading, turn, setTurn, stopSession } =
+    useGameSession();
   const { roomData } = useParams();
 
   const [agents, setAgents] = useState(AGENT_CARDS);
-  
 
   useEffect(() => {
     if (!token || !userId || !roomData) return;
@@ -38,7 +38,6 @@ export default function GamePage() {
       console.log("Turn received:", data);
       if (data.error) return toast.error(data.error);
       setTurn(data.turn);
-
     });
 
     return () => {
@@ -56,7 +55,7 @@ export default function GamePage() {
 
   return (
     <section className="w-[100%] flex flex-col items-center justify-center">
-      <NavBar token={token}/>
+      <NavBar token={token} stopSession={stopSession} />
       <div className="w-[100%] flex items-start justify-center pt-[5rem]">
         <div className="p-6">
           {turn === userId ? "Its your turn 🟢" : "opponents turn 🔴"}
@@ -84,8 +83,14 @@ export default function GamePage() {
             Submit
           </button>
         </div>
-        <Chat turn={turn} setTurn={setTurn} token={token} userId={userId}  />
-        <AgentDropdown agents={agents} />
+        <Chat turn={turn} setTurn={setTurn} token={token} userId={userId} />
+        <AgentDropdown
+          token={token}
+          userId={userId}
+          turn={turn}
+          agents={agents}
+          stopSession={stopSession}
+        />
       </div>
     </section>
   );

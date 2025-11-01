@@ -1,3 +1,5 @@
+//This is a script only used for droping all of the tables run [node dropDb.js]
+
 import Database from 'better-sqlite3';
 
 const db = new Database('game.db');

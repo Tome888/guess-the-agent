@@ -9,9 +9,10 @@ import { socket } from "../customFunctions/socket";
 
 interface NavBarProps {
   token: string;
+  stopSession: ()=>void
 }
 
-export default function NavBar({ token }: NavBarProps) {
+export default function NavBar({ token,stopSession }: NavBarProps) {
   const [myAgent, setMyAgent] = useState<null | Agent>(null);
   const [spinner, setSpinner] = useState(true);
   const router = useRouter();
@@ -74,9 +75,8 @@ export default function NavBar({ token }: NavBarProps) {
             "Are you sure you want to leave the room, this will delete the session?"
           );
           if (!confirmLeave) return;
-          socket.disconnect()
           leaveAgents(token);
-          router.push("/")
+          stopSession()
         }}
       >
         Leave Game

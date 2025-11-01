@@ -16,6 +16,7 @@ interface ChatProps {
 }
 
 export default function Chat({ turn, setTurn, token, userId }: ChatProps) {
+  
   const { chatArr, setChatArr, loading } = useGetChatHistory(token);
 
   const { roomData } = useParams();

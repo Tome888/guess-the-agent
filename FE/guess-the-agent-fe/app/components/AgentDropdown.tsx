@@ -1,34 +1,80 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Agent } from "../types/agents";
 import { ChevronDown } from "lucide-react";
+import { socket } from "../customFunctions/socket";
+import { useParams } from "next/navigation";
+import toast from "react-hot-toast";
+import GuessResultToast from "./GuessResultToast";
 
 interface AgentDropdownProps {
   agents: Agent[];
+  turn: string | null;
+  userId: string;
+  token: string;
+  stopSession: ()=>void
 }
 
-export default function AgentDropdown({ agents }: AgentDropdownProps) {
+export default function AgentDropdown({
+  agents,
+  turn,
+  userId,
+  token,stopSession
+}: AgentDropdownProps) {
+  
   const [isOpen, setIsOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
-
+  const { roomData } = useParams();
   const handleSelect = (agent: Agent) => {
     setSelectedAgent(agent);
     setIsOpen(false);
   };
 
   const handleSubmit = () => {
+    if (turn !== userId || !token) return;
+
     if (!selectedAgent) {
       console.log("No agent selected");
       return;
     }
     console.log("Selected Agent:", selectedAgent);
+    const dataSent = { roomData, userId, ...selectedAgent };
+    socket.emit("set-guess", dataSent);
   };
+
+  useEffect(() => {
+    if (!turn || !userId || !token) return;
+
+    const handleGuessResult = (data: any) => {
+      if (!data?.winner) return;
+      stopSession();
+      const isWinner = data.winner === userId;
+
+      toast.custom(
+        () => (
+          <GuessResultToast winner={isWinner} agentId={data.idAgentGuess} />
+        ),
+        {
+          duration: Infinity,
+          position: "top-center",
+        }
+      );
+    };
+
+    socket.on("set-guess", handleGuessResult);
+
+    return () => {
+      socket.off("set-guess", handleGuessResult);
+    };
+  }, [turn, userId, token]);
 
   return (
     <div className="relative w-64 text-white flex flex-col items-center gap-3">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          turn === userId && setIsOpen(!isOpen);
+        }}
         className="w-full bg-neutral-800 border border-amber-500 text-left px-4 py-2 rounded-lg flex items-center justify-between hover:bg-neutral-700 transition"
       >
         <span>{selectedAgent ? selectedAgent.name : "Select an Agent"}</span>

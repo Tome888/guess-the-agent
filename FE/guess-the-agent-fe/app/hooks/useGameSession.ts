@@ -10,6 +10,7 @@ interface GameSession {
   loading: boolean;
   turn: string | null;
   setTurn: (turn: string | null) => void;
+  stopSession:()=>void
 }
 
 export default function useGameSession(): GameSession {
@@ -23,6 +24,16 @@ export default function useGameSession(): GameSession {
   useEffect(() => {
     console.log(turn, "<- TURN IS CHANGED FROM STATE");
   }, [turn]);
+
+  const stopSession = () =>{
+    setToken("")
+    setUserId("")
+    setLoading(true)
+    setTurn(null)
+    socket.disconnect()
+    localStorage.clear()
+    router.push("/")
+  }
 
   useEffect(() => {
     const initSession = async () => {
@@ -107,5 +118,5 @@ export default function useGameSession(): GameSession {
     });
   };
 
-  return { token, userId, loading, turn, setTurn };
+  return { token, userId, loading, turn, setTurn, stopSession };
 }

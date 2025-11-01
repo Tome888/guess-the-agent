@@ -12,6 +12,7 @@ interface CardsWrapperProps {
 }
 
 export default function CardsWrapper({ token, userId, agentsArr, setAgents,turn }: CardsWrapperProps) {
+  
   if (!token) return <div className="text-center text-red-500 text-xl mt-10">User is not validated</div>;
 
   return (

@@ -66,46 +66,89 @@ io.on("connection", (socket) => {
     io.to(roomData).emit("receive_turn", { turn: newTurnPlayer });
   });
 
+  socket.on("chat-socket", (chatData) => {
+    const { roomId, msg, answer, userId, id } = chatData;
 
-socket.on("chat-socket", (chatData) => {
-  const { roomId, msg, answer, userId, id } = chatData;
+    const room = io.sockets.adapter.rooms.get(roomId);
+    const numClients = room ? room.size : 0;
 
-  const room = io.sockets.adapter.rooms.get(roomId);
-  const numClients = room ? room.size : 0;
+    if (numClients !== 2) return;
 
-  if (numClients !== 2) return;
+    if (answer) {
+      const stmt = db.prepare("UPDATE chat SET answer = ? WHERE id = ?");
+      const info = stmt.run(answer, id);
 
-  if (answer) {
-    const stmt = db.prepare("UPDATE chat SET answer = ? WHERE id = ?");
-    const info = stmt.run(answer, id);
+      if (info.changes > 0) {
+        io.to(roomId).emit("chat-socket", {
+          id,
+          room_id: roomId,
+          msg,
+          answer,
+          userId,
+        });
+      }
+      return;
+    } else {
+      const newId = uuidv4();
+      const stmt = db.prepare(
+        "INSERT INTO chat (id, room_id, msg, answer, userId) VALUES (?, ?, ?, ?, ?)"
+      );
+      stmt.run(newId, roomId, msg, null, userId);
 
-    if (info.changes > 0) {
       io.to(roomId).emit("chat-socket", {
-        id,
+        id: newId,
         room_id: roomId,
         msg,
-        answer,
+        answer: null,
         userId,
       });
+      return;
     }
-    return
-  } else {
-    const newId = uuidv4();
-    const stmt = db.prepare(
-      "INSERT INTO chat (id, room_id, msg, answer, userId) VALUES (?, ?, ?, ?, ?)"
-    );
-    stmt.run(newId, roomId, msg, null, userId);
+  });
 
-    io.to(roomId).emit("chat-socket", {
-      id: newId,
-      room_id: roomId,
-      msg,
-      answer: null,
-      userId,
-    });
-    return
-  }
-});
+
+  socket.on("set-guess", (data) => {
+    const { roomData, userId, id: guessedAgentId } = data;
+
+    try {
+      const players = db
+        .prepare("SELECT id, home_agent FROM players WHERE room_id = ?")
+        .all(roomData);
+
+      if (players.length < 2) {
+        return;
+      }
+
+      const opponent = players.find((p) => p.id !== userId);
+      if (!opponent) {
+        return;
+      }
+      let winnerId;
+
+      if (Number(opponent.home_agent) === Number(guessedAgentId)) {
+        winnerId = userId;
+      } else {
+        winnerId = opponent.id;
+      }
+
+      const result = {
+        winner: winnerId,
+        idAgentGuess: guessedAgentId,
+      };
+      io.to(roomData).emit("set-guess", result);
+
+      try {
+        db.prepare("DELETE FROM chat WHERE room_id = ?").run(roomData);
+        db.prepare("DELETE FROM players WHERE room_id = ?").run(roomData);
+        db.prepare("DELETE FROM game_rooms WHERE id = ?").run(roomData);
+        console.log(`🧹 Cleared all data for room ${roomData}`);
+      } catch (err) {
+        console.error(" Error deleting room data:", err);
+      }
+    } catch (error) {
+      console.error("Error handling set-guess:", error);
+    }
+  });
 
   socket.on("disconnect", () => {
     const roomData = socket.data.roomData;
@@ -135,8 +178,3 @@ const PORT = 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 // //ADDED change turn, next is seperate socket for CHAT, PICK and Winner
-
-
-
-
-
