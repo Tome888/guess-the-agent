@@ -1,3 +1,6 @@
+"use client"
+
+
 import { Trophy, Skull } from "lucide-react";
 import toast from "react-hot-toast";
 import { AGENT_CARDS } from "../customFunctions/getPlayerAgents";
@@ -6,9 +9,10 @@ import { AGENT_CARDS } from "../customFunctions/getPlayerAgents";
 interface GuessResultToastProps {
   winner: boolean; 
   agentId: number;
+  myId: string
 }
 
-export default function GuessResultToast({ winner, agentId }: GuessResultToastProps) {
+export default function GuessResultToast({ winner, agentId,myId }: GuessResultToastProps) {
   const agent = AGENT_CARDS.find((a) => a.id === agentId);
 
   return (
@@ -28,7 +32,7 @@ export default function GuessResultToast({ winner, agentId }: GuessResultToastPr
           <p className="text-sm text-neutral-400 mt-1">
             {winner
               ? `You guessed the correct agent!`
-              : `Your opponent guessed your agent.`}
+              : `Guess was incorrect or opponent guessed your agent.`}
           </p>
         </div>
       </div>
@@ -53,3 +57,6 @@ export default function GuessResultToast({ winner, agentId }: GuessResultToastPr
     </div>
   );
 }
+
+
+

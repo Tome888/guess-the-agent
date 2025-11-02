@@ -1,34 +1,122 @@
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import { Agent } from "../types/agents";
+// import { AGENT_CARDS } from "../customFunctions/getPlayerAgents";
+// import leaveAgents from "../customFunctions/leaveGameFunction";
+
+// interface NavBarProps {
+//   token: string;
+//   stopSession: ()=>void
+// }
+
+// export default function NavBar({ token,stopSession }: NavBarProps) {
+//   const [myAgent, setMyAgent] = useState<null | Agent>(null);
+//   const [spinner, setSpinner] = useState(true);
+
+//   useEffect(() => {
+//     if (!token) return;
+
+//     const fetchHomeAgent = async () => {
+//       try {
+//         const res = await fetch("http://localhost:5000/api/get-my-agent", {
+//           method: "POST",
+//           headers: { "Content-Type": "application/json" },
+//           body: JSON.stringify({ token }),
+//         });
+
+//         const data = await res.json();
+
+//         if (data.home_agent) {
+//           const foundAgent = AGENT_CARDS.find(
+//             (agent) => agent.id === data.home_agent
+//           );
+//           setMyAgent(foundAgent ? foundAgent : null);
+//         }
+//       } catch (err) {
+//         console.error(err);
+//       } finally {
+//         setSpinner(false);
+//       }
+//     };
+
+//     fetchHomeAgent();
+//   }, [token]);
+
+//   return (
+//     <nav className="w-full flex justify-between items-center p-3">
+//       {spinner ? (
+//         <div>
+//           <img
+//             src={AGENT_CARDS[0].img}
+//             alt={AGENT_CARDS[0].name}
+//             className="w-10 h-10 rounded-full"
+//           />
+//           <p>{AGENT_CARDS[0].name}</p>
+//         </div>
+//       ) : (
+//         <div>
+//           <img
+//             src={myAgent?.img}
+//             alt={myAgent?.name}
+//             className="w-10 h-10 rounded-full"
+//           />
+//           <p>{myAgent?.name}</p>
+//         </div>
+//       )}
+
+//       <button
+//         className="bg-amber-600 cursor-pointer"
+//         onClick={() => {
+//           const confirmLeave = window.confirm(
+//             "Are you sure you want to leave the room, this will delete the session?"
+//           );
+//           if (!confirmLeave) return;
+//           leaveAgents(token);
+//           stopSession()
+//         }}
+//       >
+//         Leave Game
+//       </button>
+//     </nav>
+//   );
+// }
+
+
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { Agent } from "../types/agents";
 import { AGENT_CARDS } from "../customFunctions/getPlayerAgents";
 import leaveAgents from "../customFunctions/leaveGameFunction";
-import { useRouter } from "next/navigation";
-import { socket } from "../customFunctions/socket";
+import { sanitizeString } from "../customFunctions/sanitizeString";
+import toast from "react-hot-toast";
 
 interface NavBarProps {
   token: string;
-  stopSession: ()=>void
+  stopSession: () => void;
 }
 
-export default function NavBar({ token,stopSession }: NavBarProps) {
+export default function NavBar({ token, stopSession }: NavBarProps) {
   const [myAgent, setMyAgent] = useState<null | Agent>(null);
   const [spinner, setSpinner] = useState(true);
-  const router = useRouter();
+
+  const { roomData } = useParams();
 
   useEffect(() => {
-    if (!token) return;
+    const safeToken = sanitizeString(token); 
+    if (!safeToken) return;
 
     const fetchHomeAgent = async () => {
       try {
         const res = await fetch("http://localhost:5000/api/get-my-agent", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
+          body: JSON.stringify({ token: safeToken }),
         });
 
-        const data = await res.json();
+        const data = await res.json();        
 
         if (data.home_agent) {
           const foundAgent = AGENT_CARDS.find(
@@ -46,41 +134,64 @@ export default function NavBar({ token,stopSession }: NavBarProps) {
     fetchHomeAgent();
   }, [token]);
 
+  const handleCopyRoom = (roomData:string) => {
+    if (!roomData) {
+      toast.error("No room ID found in URL!");
+      return;
+    }
+
+    navigator.clipboard.writeText(roomData);
+    toast.success("Room ID copied to clipboard!");
+  };
+
   return (
-    <nav className="w-full flex justify-between items-center p-3">
+    <nav className="w-full flex justify-between items-center p-4 shadow-md rounded-lg">
       {spinner ? (
-        <div>
+        <div className="flex items-center space-x-3">
           <img
             src={AGENT_CARDS[0].img}
             alt={AGENT_CARDS[0].name}
-            className="w-10 h-10 rounded-full"
+            className="w-12 h-12 rounded-full"
           />
-          <p>{AGENT_CARDS[0].name}</p>
+          <p className="text-lg font-semibold">{AGENT_CARDS[0].name}</p>
         </div>
       ) : (
-        <div>
+        <div className="flex items-center space-x-3">
           <img
             src={myAgent?.img}
             alt={myAgent?.name}
-            className="w-10 h-10 rounded-full"
+            className="w-12 h-12 rounded-full"
           />
-          <p>{myAgent?.name}</p>
+          <p className="text-lg font-semibold">{myAgent?.name}</p>
         </div>
       )}
 
-      <button
-        className="bg-amber-600 cursor-pointer"
-        onClick={() => {
-          const confirmLeave = window.confirm(
-            "Are you sure you want to leave the room, this will delete the session?"
-          );
-          if (!confirmLeave) return;
-          leaveAgents(token);
-          stopSession()
-        }}
-      >
-        Leave Game
-      </button>
+      <div className="flex gap-2">
+        <button
+          className="bg-amber-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 transition duration-300"
+          onClick={()=>handleCopyRoom(`${roomData}`)}
+        >
+          Copy Room ID
+        </button>
+
+        <button
+          className="bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 transition duration-300"
+          onClick={() => {
+            const confirmLeave = window.confirm(
+              "Are you sure you want to leave the room? This will delete the session."
+            );
+            if (!confirmLeave) return;
+
+            const safeToken = sanitizeString(token);
+            if (safeToken) {
+              leaveAgents(safeToken);
+              stopSession();
+            }
+          }}
+        >
+          Leave Game
+        </button>
+      </div>
     </nav>
   );
 }

@@ -60,3 +60,25 @@
 .animate-custom-leave {
   animation: custom-leave 0.25s ease-in forwards;
 }
+
+body {
+  /* Full screen gradient background */
+  min-height: 100vh;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+
+  /* Gradient background */
+  background: linear-gradient(135deg, #1e1e2f, #3b1f2b, #5a2f3f);
+  background-size: 400% 400%;
+
+  /* Optional: subtle animation */
+  animation: gradientBG 15s ease infinite;
+
+  color: white; /* default text color */
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
