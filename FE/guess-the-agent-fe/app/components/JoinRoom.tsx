@@ -1,26 +1,3 @@
-// import { useRouter } from "next/navigation";
-// import { useState } from "react";
-// import { sanitizeString } from "../customFunctions/sanitizeString";
-
-// export default function JoinRoom() {
-//   const router = useRouter();
-//   const [room, setRoom] = useState("");
-
-//   const handleJoin = (roomId: string) => {
-    
-//     const validString = sanitizeString(roomId.trim())
-//     if (!validString) return;
-//     router.push(`/${roomId}`);
-//   };
-//   return (
-//     <form onSubmit={() => handleJoin(room)}>
-//       <label>Enter room name</label>
-//       <input type="text" onChange={(e) => setRoom(e.target.value)} />
-//       <button>Enter</button>
-//     </form>
-//   );
-// }
-
 "use client";
 
 import { useRouter } from "next/navigation";

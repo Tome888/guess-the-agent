@@ -10,7 +10,6 @@ export default function setAgentsArrCustom(
   );
 
   setterFunction(updatedAgents);
-  console.log(updatedAgents);
 
   return updatedAgents;
 }
