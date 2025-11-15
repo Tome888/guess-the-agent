@@ -106,7 +106,6 @@ io.on("connection", (socket) => {
     }
   });
 
-
   socket.on("set-guess", (data) => {
     const { roomData, userId, id: guessedAgentId } = data;
 
@@ -175,6 +174,8 @@ io.on("connection", (socket) => {
 });
 
 const PORT = 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, "0.0.0.0", () =>
+  console.log(`Server running on port ${PORT}`)
+);
 
 // //ADDED change turn, next is seperate socket for CHAT, PICK and Winner

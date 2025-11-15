@@ -1,0 +1,12 @@
+FROM node:20-alpine
+WORKDIR /app
+
+COPY FE/guess-the-agent-fe/package*.json ./
+
+RUN npm install --legacy-peer-deps
+
+COPY FE/guess-the-agent-fe/ ./
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]
